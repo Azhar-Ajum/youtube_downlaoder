@@ -18,26 +18,17 @@ ENV PATH="/opt/yt-dlp-venv/bin:$PATH"
 # Set work directory
 WORKDIR /app
 
-# Copy Maven Wrapper & pom.xml first for Docker cache
-COPY .mvn/ .mvn
-COPY mvnw .
-COPY pom.xml .
+# Copy ALL project files
+COPY . .
 
-# Prepare dependencies
-RUN chmod +x mvnw \
-    && ./mvnw dependency:go-offline
+# Make Maven wrapper executable
+RUN chmod +x mvnw
 
-# Copy source code
-COPY src ./src
-
-# Package app
-RUN ./mvnw package -DskipTests
-
-# Copy built jar
-COPY target/*.jar app.jar
+# Package app (skip tests)
+RUN ./mvnw clean package -DskipTests
 
 # Expose port
 EXPOSE 8080
 
-# Run
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+# Run the jar
+ENTRYPOINT ["java","-jar","target/youtube_downloader-0.0.1-SNAPSHOT.jar"]
