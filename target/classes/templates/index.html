@@ -1,0 +1,280 @@
+<!-- Half square design loading -->
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>YouTube Downloader</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta charset="UTF-8">
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #e50914;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 30px 20px;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.3);
+      text-align: center;
+      color: #e50914;
+      position: relative;
+      transition: max-width 0.3s ease;
+    }
+    .container.expanded {
+      max-width: 600px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      font-size: 2em;
+      letter-spacing: 1px;
+    }
+    form {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1em;
+      outline: none;
+      background: rgba(229,9,20,0.2);
+      color: #e50914;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    input[type="text"]::placeholder {
+      color: #e50914;
+      opacity: 0.6;
+    }
+    input[type="text"]:focus {
+      background: rgba(229,9,20,0.3);
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(229,9,20,0.3);
+    }
+    button, .download-button {
+      padding: 14px 20px;
+      background: #e50914;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+      text-decoration: none;
+      display: inline-block;
+      width: 100%;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    button::before, .download-button::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10.01%);
+      background-size: 10% 10%;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    button:hover::before, .download-button:hover::before {
+      opacity: 1;
+    }
+    button:hover, .download-button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+    .format-list {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .format {
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.05);
+      margin-bottom: 15px;
+      flex-wrap: nowrap;
+      text-align: left;
+      gap: 20px;
+    }
+    .format-details {
+      flex: 1 1 auto;
+      word-break: break-word;
+    }
+    .format form {
+      flex: 0 0 auto;
+    }
+    .format.highlight {
+      background: rgba(229,9,20,0.1);
+      border-color: #e50914;
+    }
+    .format > div {
+      flex: 1 1 auto;
+      padding-right: 10px;
+      word-break: break-word;
+    }
+    .format + .divider {
+      height: 1px;
+      background: rgba(0,0,0,0.1);
+      margin: 10px 0;
+      border: none;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 1.1em;
+      color: #28a745;
+    }
+    .error {
+      margin-top: 20px;
+      font-size: 1.1em;
+      color: #dc3545;
+    }
+    video {
+      width: 100%;
+      max-height: 300px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+    .downloads {
+      margin-top: 20px;
+    }
+    .footer {
+      margin-top: 15px;
+      font-size: 0.9em;
+      color: #777;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      .container, .container.expanded {
+        max-width: 100%;
+      }
+    }
+
+    /* NEW Loading Overlay */
+    #loadingOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(6px);
+      background: rgba(229, 9, 20, 0.2);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .square-loader {
+      width: 50px;
+      height: 50px;
+      border: 4px solid transparent;
+      border-top: 4px solid #fff;
+      border-right: 4px solid #fff;
+      border-radius: 10px;
+      animation: rotateSquare 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes rotateSquare {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #loadingOverlay p {
+      font-size: 1.2em;
+      color: #fff;
+      text-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+<div th:class="container" th:classappend="${formats} ? 'expanded'">
+
+  <h2>Y2Y YouTube Downloader</h2>
+
+ <!--  URL input -->
+  <form method="post" action="/formats" onsubmit="showLoading()">
+    <input type="text" name="url" placeholder="Enter YouTube URL..." required>
+    <button type="submit">Download</button>
+  </form>
+
+ <!--  Messages -->
+  <div th:if="${error}" class="error" th:text="${error}"></div>
+  <div th:if="${message}" class="message" th:text="${message}"></div>
+
+  <!-- List of formats -->
+  <div class="format-list" th:if="${formats}">
+    <h3>Available Formats:</h3>
+    <div th:each="format : ${formats}">
+      <div th:class="format" th:classappend="${format.note.contains('http')} ? 'highlight'">
+        <div>
+          <strong th:text="${format.resolution}"></strong><br/>
+          <span th:text="${format.extension}"></span> -
+          <small th:text="${format.note}"></small>
+        </div>
+        <form method="post" action="/download" onsubmit="showLoading()">
+          <input type="hidden" name="url" th:value="${videoUrl}">
+          <input type="hidden" name="formatCode" th:value="${format.formatCode}">
+          <button type="submit">Download</button>
+        </form>
+      </div>
+      <hr class="divider"/>
+    </div>
+    <form method="post" action="/download-best" onsubmit="showLoading()">
+      <input type="hidden" name="url" th:value="${videoUrl}">
+      <button type="submit">Download Best</button>
+    </form>
+  </div>
+
+  <div class="downloads" th:if="${downloadLink}">
+    <video th:src="@{${downloadLink}}" controls></video>
+    <a th:href="${downloadLink}" download class="download-button">Download Video</a>
+  </div>
+
+  <div class="footer">
+    &copy; Mohamed Azharudeen<br>
+    <small>*for educational purposes only*</small>
+  </div>
+</div>
+
+<div id="loadingOverlay">
+  <div class="square-loader"></div>
+  <p>Wait pannu la....! video varum </p>
+</div>
+
+<script>
+function showLoading() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+}
+</script>
+</body>
+</html>
+  
+    
