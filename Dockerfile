@@ -1,3 +1,23 @@
+# Stage 1: Build
+FROM eclipse-temurin:17-jdk as build
+
+WORKDIR /app
+
+# Copy Maven wrapper and pom.xml first (to cache dependencies)
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Download dependencies
+RUN ./mvnw dependency:go-offline
+
+# Copy the rest of the code
+COPY src src
+
+# Package the application
+RUN ./mvnw package -DskipTests
+
+# Stage 2: Runtime
 FROM eclipse-temurin:17-jdk
 
 # Install dependencies
@@ -6,18 +26,14 @@ RUN apt-get update \
  && apt-get install -y ffmpeg python3-pip \
  && pip3 install yt-dlp
 
-# Create a non-root user to run the app
 RUN useradd -ms /bin/bash appuser
 USER appuser
 
-# Set working directory
 WORKDIR /app
 
-# Copy the JAR
-COPY target/youtube_downloader-0.0.1-SNAPSHOT.jar app.jar
+# Copy jar from the build stage
+COPY --from=build /app/target/youtube_downloader-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose port 8080
 EXPOSE 8080
 
-# Run the app
 ENTRYPOINT ["java","-jar","/app/app.jar"]
