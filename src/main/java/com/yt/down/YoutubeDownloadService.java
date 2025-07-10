@@ -21,9 +21,18 @@ public class YoutubeDownloadService {
     public List<VideoFormat> fetchAvailableFormats(String url) throws Exception {
         List<VideoFormat> formats = new ArrayList<>();
 
+//        ProcessBuilder pb = new ProcessBuilder(
+//                "yt-dlp", "-F", url
+//        );
+        
         ProcessBuilder pb = new ProcessBuilder(
-                "yt-dlp", "-F", url
-        );
+        		   "yt-dlp",
+        		   "--geo-bypass",
+        		   "--geo-bypass-country", "IN",
+        		   "-F",
+        		   url
+        		);
+
 
         pb.redirectErrorStream(true);
         Process process = pb.start();
@@ -97,14 +106,26 @@ public class YoutubeDownloadService {
         String filenamePattern = "youtube_" + System.currentTimeMillis();
         String outputTemplate = outputDir + "/" + filenamePattern + ".%(ext)s";
 
+//        ProcessBuilder pb = new ProcessBuilder(
+//                "yt-dlp",
+//                "-f", formatCode + "+bestaudio",            // 👈 select this video + best audio
+//                "--merge-output-format", "mp4",
+//                "--ffmpeg-location", "C:/ffmpeg/bin",       // 👈 ensure ffmpeg works
+//                "-o", outputTemplate,
+//                url
+//        );
+        
         ProcessBuilder pb = new ProcessBuilder(
-                "yt-dlp",
-                "-f", formatCode + "+bestaudio",            // 👈 select this video + best audio
-                "--merge-output-format", "mp4",
-                "--ffmpeg-location", "C:/ffmpeg/bin",       // 👈 ensure ffmpeg works
-                "-o", outputTemplate,
-                url
-        );
+        		   "yt-dlp",
+        		   "--geo-bypass",
+        		   "--geo-bypass-country", "IN",
+        		   "-f", formatCode + "+bestaudio",
+        		   "--merge-output-format", "mp4",
+        		   "--ffmpeg-location", "C:/ffmpeg/bin",
+        		   "-o", outputTemplate,
+        		   url
+        		);
+
 
         pb.redirectErrorStream(true);
         Process process = pb.start();
@@ -142,6 +163,8 @@ public class YoutubeDownloadService {
 
         ProcessBuilder pb = new ProcessBuilder(
                 "yt-dlp",
+                "--geo-bypass",
+                "--geo-bypass-country", "IN",
                 "-f", "bestvideo+bestaudio",
                 "--merge-output-format", "mp4",
                 "--ffmpeg-location", "C:/ffmpeg/bin",
