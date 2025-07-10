@@ -27,6 +27,7 @@ public class YoutubeDownloadService {
         
         ProcessBuilder pb = new ProcessBuilder(
         		   "yt-dlp",
+        		   "--cookies", "cookies.txt",
         		   "--geo-bypass",
         		   "--geo-bypass-country", "IN",
         		   "-F",
@@ -117,6 +118,7 @@ public class YoutubeDownloadService {
         
         ProcessBuilder pb = new ProcessBuilder(
         		   "yt-dlp",
+        		   "--cookies", "cookies.txt",
         		   "--geo-bypass",
         		   "--geo-bypass-country", "IN",
         		   "-f", formatCode + "+bestaudio",
@@ -163,6 +165,7 @@ public class YoutubeDownloadService {
 
         ProcessBuilder pb = new ProcessBuilder(
                 "yt-dlp",
+                "--cookies", "cookies.txt",
                 "--geo-bypass",
                 "--geo-bypass-country", "IN",
                 "-f", "bestvideo+bestaudio",
